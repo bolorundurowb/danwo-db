@@ -31,4 +31,9 @@ class DataAccessLayer : IAsyncDisposable
     {
         
     }
+
+    public Page ReadPage(uint pageNumber)
+    {
+        
+    }
 }
