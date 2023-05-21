@@ -35,8 +35,7 @@ class DataAccessLayer : IAsyncDisposable
     {
         var page = AllocateEmptyPage();
         var offset = pageNumber * PageSize;
-
-        _ = await File.ReadAsync(page.Data, (int)offset, (int) PageSize, default);
+        _ = await File.ReadAsync(page.Data, (int)offset, (int)PageSize, default);
 
         return page;
     }
@@ -46,5 +45,27 @@ class DataAccessLayer : IAsyncDisposable
         var offset = page.PageNumber * PageSize;
         var writer = new BinaryWriter(File);
         writer.Seek((int)offset, SeekOrigin.Begin);
+    }
+}
+
+class FreeList
+{
+    public uint MaxPage { get; set; }
+
+    public uint[] ReleasedPages { get; set; }
+
+    public FreeList() => ReleasedPages = Array.Empty<uint>();
+
+    public uint GetNextPage()
+    {
+        if (ReleasedPages.Any())
+        {
+            var pageNumber = ReleasedPages.Last();
+            ReleasedPages = ReleasedPages.Where(x => x != pageNumber).ToArray();
+            return pageNumber;
+        }
+
+        MaxPage += 1;
+        return MaxPage;
     }
 }
