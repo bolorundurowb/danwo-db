@@ -7,6 +7,8 @@ class Page
     public uint PageNumber { get; set; }
 
     public byte[] Data { get; set; }
+
+    public Page(uint pageSize) => Data = new byte[pageSize];
 }
 
 class DataAccessLayer : IAsyncDisposable
@@ -27,13 +29,22 @@ class DataAccessLayer : IAsyncDisposable
         File.Close();
     }
 
-    public Page AllocateEmptyPage()
+    public Page AllocateEmptyPage() => new(PageSize);
+
+    public async Task<Page> ReadPage(uint pageNumber)
     {
-        
+        var page = AllocateEmptyPage();
+        var offset = pageNumber * PageSize;
+
+        _ = await File.ReadAsync(page.Data, (int)offset, (int) PageSize, default);
+
+        return page;
     }
 
-    public Page ReadPage(uint pageNumber)
+    public void WritePage(Page page)
     {
-        
+        var offset = page.PageNumber * PageSize;
+        var writer = new BinaryWriter(File);
+        writer.Seek((int)offset, SeekOrigin.Begin);
     }
 }
