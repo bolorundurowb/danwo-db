@@ -1,14 +1,14 @@
-﻿namespace danwo_db;
+﻿namespace DanwoDB;
 
 public class FreeList
 {
-    public uint MaxPage { get; set; }
+    public int MaxPage { get; set; }
 
-    public List<uint> ReleasedPages { get; set; }
+    public List<int> ReleasedPages { get; set; }
 
-    public FreeList() => ReleasedPages = new List<uint>();
+    public FreeList() => ReleasedPages = new List<int>();
 
-    public uint GetNextPage()
+    public int GetNextPage()
     {
         if (ReleasedPages.Any())
         {
@@ -21,5 +21,5 @@ public class FreeList
         return MaxPage;
     }
 
-    public void ReleasePage(uint pageNumber) => ReleasedPages.Add(pageNumber);
+    public void ReleasePage(int pageNumber) => ReleasedPages.Add(pageNumber);
 }

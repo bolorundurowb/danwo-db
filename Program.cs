@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using danwo_db;
+using DanwoDB;
 
-var dal = new DataAccessLayer("database.db", (uint)Environment.SystemPageSize);
+var dal = new DataAccessLayer("database.db", Environment.SystemPageSize);
 var page = dal.AllocateEmptyPage();
 page.PageNumber = dal.FreeList.GetNextPage();
 

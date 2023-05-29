@@ -1,14 +1,14 @@
-﻿namespace danwo_db;
+﻿namespace DanwoDB;
 
 public class DataAccessLayer : IAsyncDisposable
 {
-    public uint PageSize { get; set; }
+    public int PageSize { get; set; }
 
     public FileStream File { get; set; }
 
     public FreeList FreeList { get; set; }
 
-    public DataAccessLayer(string path, uint pageSize)
+    public DataAccessLayer(string path, int pageSize)
     {
         PageSize = pageSize;
         FreeList = new FreeList();
@@ -23,11 +23,11 @@ public class DataAccessLayer : IAsyncDisposable
 
     public Page AllocateEmptyPage() => new(PageSize);
 
-    public async Task<Page> ReadPage(uint pageNumber)
+    public async Task<Page> ReadPage(int pageNumber)
     {
         var page = AllocateEmptyPage();
         var offset = pageNumber * PageSize;
-        _ = await File.ReadAsync(page.Data, (int)offset, (int)PageSize, default);
+        _ = await File.ReadAsync(page.Data, offset, PageSize, default);
 
         return page;
     }
@@ -36,7 +36,7 @@ public class DataAccessLayer : IAsyncDisposable
     {
         var offset = page.PageNumber * PageSize;
         File.Seek(offset, SeekOrigin.Begin);
-        await File.WriteAsync(page.Data, 0, (int)PageSize);
+        await File.WriteAsync(page.Data, 0, PageSize);
         File.Seek(0, SeekOrigin.Begin);
     }
 }
