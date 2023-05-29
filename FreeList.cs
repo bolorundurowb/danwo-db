@@ -1,4 +1,6 @@
-﻿namespace DanwoDB;
+﻿using System.Text.Json;
+
+namespace DanwoDB;
 
 public class FreeList
 {
@@ -22,4 +24,8 @@ public class FreeList
     }
 
     public void ReleasePage(int pageNumber) => ReleasedPages.Add(pageNumber);
+
+    public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes(this);
+
+    public static FreeList? Deserialize(byte[] data) => JsonSerializer.Deserialize<FreeList>(data);
 }

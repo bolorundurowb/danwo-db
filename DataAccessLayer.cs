@@ -8,11 +8,33 @@ public class DataAccessLayer : IAsyncDisposable
 
     public FreeList FreeList { get; set; }
 
-    public DataAccessLayer(string path, int pageSize)
+    public Meta Metadata { get; set; }
+
+    private DataAccessLayer(string path, int pageSize)
     {
         PageSize = pageSize;
-        FreeList = new FreeList();
         File = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+
+        FreeList = new FreeList();
+        Metadata = new Meta
+        {
+            FreeListPage = FreeList.GetNextPage()
+        };
+    }
+
+    public static async Task<DataAccessLayer> Instantiate(string path, int pageSize)
+    {
+        var isExistingDb = System.IO.File.Exists(path);
+        var dal = new DataAccessLayer(path, pageSize);
+        
+
+        if (isExistingDb)
+        {
+            await dal.ReadMeta();
+            await dal.ReadFreeList();
+        }
+
+        return dal;
     }
 
     public async ValueTask DisposeAsync()
@@ -40,23 +62,35 @@ public class DataAccessLayer : IAsyncDisposable
         File.Seek(0, SeekOrigin.Begin);
     }
 
-    public async Task WriteMeta(Meta meta)
+    public async Task WriteMeta()
     {
         var page = AllocateEmptyPage();
         page.PageNumber = Constants.MetadataPageNum;
-        meta.Serialize().CopyTo(page.Data, 0);
+        Metadata.Serialize().CopyTo(page.Data, 0);
 
         await WritePage(page);
     }
 
-    public async Task<Meta> ReadMeta()
+    public async Task ReadMeta()
     {
         var page = await ReadPage(Constants.MetadataPageNum);
         var meta = Meta.Deserialize(page.Data);
+        Metadata = meta ?? throw new Exception("Metadata could not be deserialized.");
+    }
 
-        if (meta is null) 
-            throw new Exception("Metadata could not be deserialized.");
+    public async Task WriteFreeList()
+    {
+        var page = AllocateEmptyPage();
+        page.PageNumber = Metadata.FreeListPage;
+        FreeList.Serialize().CopyTo(page.Data, 0);
 
-        return meta;
+        await WritePage(page);
+    }
+
+    public async Task ReadFreeList()
+    {
+        var page = await ReadPage(Metadata.FreeListPage);
+        var freeList = FreeList.Deserialize(page.Data);
+        FreeList = freeList ?? throw new Exception("Freelist could not be deserialized.");
     }
 }

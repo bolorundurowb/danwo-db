@@ -4,7 +4,7 @@ namespace DanwoDB;
 
 public class Meta
 {
-    private long FreeListPage { get; set; }
+    public int FreeListPage { get; set; }
 
     public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes(this);
 
