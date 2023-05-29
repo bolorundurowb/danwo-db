@@ -27,5 +27,5 @@ public class FreeList
 
     public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes(this);
 
-    public static FreeList? Deserialize(byte[] data) => JsonSerializer.Deserialize<FreeList>(data);
+    public static FreeList? Deserialize(byte[] data) => JsonSerializer.Deserialize<FreeList>(data.TakeWhile(x => x != default).ToArray());
 }

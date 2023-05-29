@@ -1,14 +1,28 @@
-﻿using System.Text;
-using DanwoDB;
+﻿using DanwoDB;
 
-var dal = await DataAccessLayer.Instantiate("database.db", Environment.SystemPageSize);
-var page = dal.AllocateEmptyPage();
-page.PageNumber = dal.FreeList.GetNextPage();
+await using (var dal = await DataAccessLayer.Instantiate("database.db", Environment.SystemPageSize))
+{
+    var page = dal.AllocateEmptyPage();
+    page.PageNumber = dal.FreeList.GetNextPage();
+    "data".CopyToBuffer(page.Data);
 
-var test = "my test data";
-var dataBuffer = Encoding.UTF8.GetBytes(test);
-dataBuffer.CopyTo(page.Data, 0);
+    await dal.WritePage(page);
+    await dal.WriteFreeList();
+}
 
-await dal.WritePage(page);
+await using (var dal = await DataAccessLayer.Instantiate("database.db", Environment.SystemPageSize))
+{
+    var page = dal.AllocateEmptyPage();
+    page.PageNumber = dal.FreeList.GetNextPage();
+    "data2".CopyToBuffer(page.Data);
+
+    await dal.WritePage(page);
+
+    var pageNum = dal.FreeList.GetNextPage();
+    dal.FreeList.ReleasePage(pageNum);
+
+    await dal.WriteFreeList();
+}
+
 
 Console.WriteLine("Hello, World!");

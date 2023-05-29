@@ -33,6 +33,11 @@ public class DataAccessLayer : IAsyncDisposable
             await dal.ReadMeta();
             await dal.ReadFreeList();
         }
+        else
+        {
+            await dal.WriteFreeList();
+            await dal.WriteMeta();
+        }
 
         return dal;
     }
@@ -49,7 +54,9 @@ public class DataAccessLayer : IAsyncDisposable
     {
         var page = AllocateEmptyPage();
         var offset = pageNumber * PageSize;
-        _ = await File.ReadAsync(page.Data, offset, PageSize, default);
+        File.Seek(offset, SeekOrigin.Begin);
+        _ = await File.ReadAsync(page.Data, 0, PageSize, default);
+        File.Seek(0, SeekOrigin.Begin);
 
         return page;
     }
