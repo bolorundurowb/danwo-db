@@ -39,4 +39,24 @@ public class DataAccessLayer : IAsyncDisposable
         await File.WriteAsync(page.Data, 0, PageSize);
         File.Seek(0, SeekOrigin.Begin);
     }
+
+    public async Task WriteMeta(Meta meta)
+    {
+        var page = AllocateEmptyPage();
+        page.PageNumber = Constants.MetadataPageNum;
+        meta.Serialize().CopyTo(page.Data, 0);
+
+        await WritePage(page);
+    }
+
+    public async Task<Meta> ReadMeta()
+    {
+        var page = await ReadPage(Constants.MetadataPageNum);
+        var meta = Meta.Deserialize(page.Data);
+
+        if (meta is null) 
+            throw new Exception("Metadata could not be deserialized.");
+
+        return meta;
+    }
 }
